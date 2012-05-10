@@ -1,0 +1,12 @@
+Various files are included here to help Ingres 10S Geospatial databases users get up and running quickly.  These files are provided as-is and you use them at your own risk.
+
+Licensing for some components is as follows:
+GEOS - geos_c.dll 
+    GNU LGPL details: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html 
+    More info: http://trac.osgeo.org/geos/
+
+GDAL - gdal18.dll, ogr_Ingres.dll
+    X11/MIT details: http://trac.osgeo.org/gdal/wiki/FAQGeneral#WhatlicensedoesGDALOGRuse
+    More info: http://gdal.org/
+
+
