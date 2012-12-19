@@ -1,0 +1,253 @@
+Ingres JDBC Driver README
+=========================
+
+The Ingres JDBC Driver (iijdbc.jar) is a pure Java implementation of the JDBC
+4.0 API released with the Sun Java SE Development Kit (JDK) 6.0 and Java Runtime 
+Environment (JRE) 6.0. JDBC 4.0 is a superset of the JDBC 3.0. The latest Ingres JDBC driver
+version is 4.0.0. JRE 1.6 is requirement for deploying Ingres JDBC driver version 4.0.0 
+with your applications.
+
+In order to use JDBC, there must be a Data Access Server (DAS) enabled in your
+environment - typically enabled as part of the Ingres Server Installation. 
+
+It is recommended to use the JDBC driver version 4.0.x with DAS server from Ingres 9.2, 
+9.3 releases and later. In Ingres 9.3 and later releases of Ingres, the Ingres JDBC driver 
+property generator utility (iijdbcprop) can be used to identify the list of JDBC driver 
+properties supported by the Ingres JDBC driver.
+
+Installation:
+Move iijdbc.jar to the desired location and add it to your CLASSPATH.  
+
+The driver class to import in applications is com.ingres.jdbc.IngresDriver. It is not required
+to load the driver class explicitly in the applications when using Ingres JDBC driver 4.0.x.
+
+Testing a connection:
+A jdbc connection requires 5 pieces of information (in the URL):
+1) hostname of the DBMS server (specifically where Ingres DAS is running)
+2) port, usually "II7" (Ingres 2-character installation/instance id followed 
+by a "7"). Note, if using the JDBC Driver with a VectorWise installation, the port will usually 
+be "VW7" (VectorWise 2-character installation/instance id followed by a 7).
+3) database name
+4) username
+5) password
+
+The connection string then follows this form:
+"jdbc:ingres://${HOSTNAME}:${PORT}/${DB};UID=${USERNAME};PWD=${PASSWORD}"
+
+Examples:
+The dbmsConnect function in JdbcInfo.java demonstrates a simple connection:
+
+java -cp iijdbc.jar:. \
+jdbcInfo "jdbc:ingres://serverA:II7/testdb;UID=johnsmith;PWD=js-password"
+
+Migration Considerations:
+
+For JDBC, the userid and password may be passed in the URL, as parameters to 
+the connect, or supplied in an Ingres vnode definition.  If connecting locally 
+(same machine), the userid and password do not need to be specified.  If 
+connecting remotely, Ingres by default will authenticate against the OS on the
+server machine, unless using installation passwords.  The Ingres driver in 
+Ingres 2006 and later releases only requires an OS user/password when 
+the target server (Data Access Server) is on a different machine than the client. 
+An alternative way to connect would be to place an Ingres client running the DAS server 
+on the client machine and use Ingres/Net to connect to the remote DBMS server.  The 
+OS user/password then would be stored (encrypted) in the Ingres/Net VNODE 
+database and not be required in the application.
+
+
+Using Multiple Cursors with Autocommit enabled:
+
+If multiple cursors must be kept open when autocommit is on, specify attribute
+AUTO=MULTI on the Ingres JDBC url or by setting the property.
+
+We don't suggest using this unless needed. Java/JDBC applications sometimes
+expect the DBMS to support multiple cursors across autocommits; Ingres does 
+not, but the JDBC driver works around this with this attribute setting.  The 
+symptom indicating the need for this attribute is an error such as:
+
+"No MST is currently in progress, cannot declare another cursor" 
+
+For example, 
+
+URL = "jdbc:ingres://host:port/db;auto=multi"
+
+or setting the property 'ingres.jdbc.property.auto=multi'.  The property can be 
+set on the command line:
+
+            java -Dingres.jdbc.property.auto=multi
+
+or by placing it in a property file - either iijdbc.properties where the driver
+archive is located or by specifying the file on the command line:
+
+            java -Dingres.jdbc.property_file=<path/file>
+
+JDBC LONGVARBINARY Performance: 
+
+If JDBC LONGVARBINARY (Ingres LONG BYTE, LONG VARCHAR, etc) are being 
+extensively used, performance "may" be enhanced with the following Ingres DBMS 
+server settings in the Ingres config.dat file, which is normally updated via 
+one of the Ingres configuration utilities (vcbf or cbf).  The main purpose of 
+the following DBMS Server changes is to cause blobs to use 8K pages, instead of
+2k pages, which is the default (for historical reasons).
+
+    blob_etab_page_size: (default: 2048)  8192
+
+    cache -> p8k_status: (default: OFF) ON
+
+    max_tuple_length: (default: 2008) 0 
+
+JDBC 4.0 features supported:
+
+- Auto-loading of the Driver.
+- Support for the new setter, getter, and updater methods for NCHAR,NVARCHAR, LONGNVARCHAR, 
+  and NCLOB types.
+- Support for createBlob(), createClob(), and createNClob Methods.
+- Connection Interface Method:isValid() 
+- DatabaseMetaData Interface Methods: autoCommitFailueClosesAllResultSets() , getSchemas() , 
+  and supportsStoredFunctionUsingCallSyntax()
+- Statement Interface Method:isClosed()
+- CallableStatement Interface Methods: Overloaded setAsciiStream(), setBinaryStream(), 
+  setCharacterStream(), setBlob(), setClob() methods, and getCharacterStream().
+- PreparedStatement Interface Methods: Overloaded setAsciiStream(), setBinaryStream(),
+  setCharacterStream(), setBlob(), and setClob() methods.
+- ResultSet Interface Methods: isClosed(), getHoldability(), overloaded updateAsciiStream(),
+  updateBinaryStream(), updateBlob(), updateCharacterStream(), and updateClob() methods.
+
+JDBC 4.0 features unsupported:
+
+- PooledConnection interface Methods related to Statement pooling: addStatementEventListener()
+  and RemoveStatementEventListener().
+- Using escape syntax for calling stored procedures in Statement and PreparedStatement interfaces.
+
+
+JDBC driver fixes:
+
+                ********* JDBC Driver [4.0.0]  ***************
+
+1.      (121238)
+	Ingres JDBC driver is JDBC 4.0 compliant.
+
+                ********* JDBC Driver [4.0.1]  ***************
+
+2.	(122707)
+	Add the SQL Standard data type named BOOLEAN.
+
+3.	(123277)
+	Added JDBC connection property "send_ingres_dates". Default value is
+	'false'. A value of 'true' will notify the driver to send the 
+	date/time/timestamp values as of type INGRESDATE instead of 
+	ANSI TIMESTAMP WITH TIMEZONE datatype.
+
+4.	(123372)
+	Add support for batch processing.
+
+                ********* JDBC Driver [4.0.2]  ***************
+
+5.	(121220)
+	Use of positional parameters in database procedure invocation 
+	fails to work. It appears that the parameter values are not 
+	properly assigned.
+	Added support for positional parameters to JDBC driver.
+
+                ********* JDBC Driver [4.0.3]  ***************
+
+6.	(123372)
+	Batch processing performance enhancements such as:
+	1. Elimination of buffering in TCP layer by setting TCP_NODELAY.
+	2. Concatenation of message segments in TL packets.	
+
+                ********* JDBC Driver [4.0.4]  ***************
+
+7.	(124018)
+	JDBC driver does not recognize comments in SQL query text.
+
+                ********* JDBC Driver [4.0.5]  ***************
+
+8.	(124165)
+	Add JDBC config item to force boolean parameters to be sent as tinyint 
+	values.
+
+9.	(124214)
+	JDBC method isBeforeFirst() does not return FALSE when result set is 
+	empty.
+
+		********* JDBC Driver [4.0.6]  ***************
+
+10.	(124588)
+	Add ability to store blank date in the DBMS.
+
+	[**WARNING**]: The "Date/Time Columns and Values" topic of "JDBC Implementation 
+	Considerations" section of Ingres Connectivity Guide that can be referenced at
+http://docs.ingres.com/ingres/10.0/connectivity-guide/1324-understanding-jdbc-connectivity
+	discusses in detail about the JDBC Driver support for Ingres empty dates. This 
+	enhancement allows the driver to store the empty date back in the DBMS. The unavoidable 
+	side effect of this change is that when the driver is configured to return "null" 
+	alternate value for Ingres empty date indicating the driver to treat empty dates 
+	as null values, then while storing the empty date back in the DBMS the actual null value 
+	will get replaced by empty date. Hence the "null" alternate value for Ingres empty date 
+	is NOT RECOMMENDED.	
+
+11.	(124712)
+	DAS aborts client connections with SQLException: "Server aborted
+	connection" for BigDecimal query parameter values specified in
+	scientific notation.
+
+12.	(124716)
+	JDBC driver does not correctly return UTF8 Clob data when accessed via a locator.
+
+13.	(124722)
+	Change JDBC DATE_ALIAS default to ANSIDATE.
+
+14.	(124734)
+	Provide streaming LOB data access via locators in JDBC
+
+		********* JDBC Driver [4.0.7]  ***************
+
+15.	(125042)
+	Support identity columns in JDBC as generated keys.
+	Prior to this enhancement, only generated table and object keys from
+	tables containing a system maintained column were returned to JDBC
+	function getGeneratedKeys(). Identity column updates are now also
+	returned, but only under the following conditions:
+	1. No table or object keys were updated by the query.
+	2. Application has requested generated keys to be returned (for example,
+	   using Statement.RETURN_GENERATED_KEYS parameter on prepareStatement() ).
+	3. Ingres server must be release 10 or later. 
+
+	[**WARNING**]: The Ingres SQL function last_identity() is
+	used to obtain the generated identity value and it returns
+	the last generated identity value for ANY SQL statement.
+	Hence, the identity value returned will be incorrect if the current
+	SQL insert statement did not automatically generate an identity value.
+
+	A connection property, identity_query, has been added which
+	permits the identity query to be enabled/disabled.  There is
+	a corresponding connection attribute: IDENTITY.  The valid
+	configuration settings are as follows:
+
+	off - Identity query will not be issued and identity values
+	      won't be returned.
+	on  - Identity query will be issued if no table/object key
+	      is received and other conditions permit.
+
+	The default setting is 'on', which provides the best behavior
+	for applications which use only table/object keys or only
+	identity columns.  If only table or object keys are used, the
+	property can be set 'off' to ensure that the identity query is
+	never issued.  The identity query can be disabled by adding the
+	connection attribute IDENTITY=off to the connection string, or
+	adding the property ingres.jdbc.property.identity_query=off to
+	a driver properties file.  
+ 
+	For more detailed information, see:
+	http://community.ingres.com/wiki/JDBC_Identity_Column_Support_As_Generated_Keys.
+
+More Information:
+
+- JDBC Driver documentation can be found in the Connectivity Guide at 
+http://docs.ingres.com
+- General Ingres documentation can be found at http://docs.ingres.com/
+- Forums are located at http://community.ingres.com/
+- Wiki is located at http://community.ingres.com/wiki/Ingres_Java_Development_Center
+- Detailed feature/bug fix list per JDBC Driver version and the dependencies on Ingres DBMS and DAS releases is at http://community.ingres.com/wiki/Ingres_Java_Development_Center/Ingres_Java_Learn/Ingres_JDBC_Driver_Feature_Availability
+- Usenet group is comp.databases.ingres
