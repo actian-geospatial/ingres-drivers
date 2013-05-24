@@ -11,6 +11,11 @@ Known Issues
 ==============
 * Tables with MULTI geometries may fail.  Workaround: add ";MULTI=AUTO" at end of database name when defining connection.
 
+-----------
+
+The following is settings are not required for enabling GeoTools drivers.  They apply to the Ingres JDBC driver
+in general and are included for reference for developers only.
+
 General Ingres JDBC Driver README
 =========================
 
