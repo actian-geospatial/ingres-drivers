@@ -5,6 +5,9 @@ GeoServer Installation:
 	
 iijdbc.jar and gt-jdbc-ingres-xxx.jar both go into the GeoServer lib folder. Under Tomcat server, for example, the location would be: /var/lib/tomcat6/webapps/geoserver/WEB-INF/lib
 
+Use driver version 9.2 for GeoServer 2.3.
+
+
 Ingres JDBC Driver README
 =========================
 
