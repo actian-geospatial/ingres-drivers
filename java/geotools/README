@@ -5,7 +5,18 @@ GeoServer Installation:
 	
 iijdbc.jar and gt-jdbc-ingres-xxx.jar both go into the GeoServer lib folder. Under Tomcat server, for example, the location would be: /var/lib/tomcat6/webapps/geoserver/WEB-INF/lib
 
-Ingres JDBC Driver README
+Use driver version 9.2 for GeoServer 2.3.
+
+Known Issues
+==============
+* Tables with MULTI geometries may fail.  Workaround: add ";MULTI=AUTO" at end of database name when defining connection.
+
+-----------
+
+The following is settings are not required for enabling GeoTools drivers.  They apply to the Ingres JDBC driver
+in general and are included for reference for developers only.
+
+General Ingres JDBC Driver README
 =========================
 
 The Ingres JDBC Driver (iijdbc.jar) is a pure Java implementation of the JDBC
